@@ -1,0 +1,305 @@
+---
+title: "The third homework"
+author: "Gaoyanmei"
+data: "2020/3/25"
+output: pdf_document
+---
+
+# Abstract
+Use **bookdown** or **rmarkdown** to produce a report for the following task. It should contain at least one math equation, one table, one figure, and one chunk of R code.
+
+## Keywords:
+Rmarkdown,Monte Carlo method
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction {#sec:intro}
+This report uses **bookdown** or **rmarkdown** to produce a report for considering approximation of the distribution function of $N(0, 1)$ by the Monte Carlo methods, and do a Experiment with the approximation at $n \in \{10^2, 10^3, 10^4\}$ at $t \in \{0.0, 0.67, 0.84, 1.28, 1.65, 2.32, 2.58, 3.09, 3.72\}$ to form a table. And  Draw box plots of the 100 approximation errors at each $t$ using **ggplot2** [@R-ggplot2] for each $n$.
+
+# Math Equations {#sec:math}
+
+Consider approximation of the distribution function of $N(0, 1)$,
+
+\begin{equation}
+\Phi(t) = \int_{-\infty}^t \frac{1}{\sqrt{2\pi}} e^{-y^2 / 2}dy,
+(\#eq:cdf)
+\end{equation}
+by the Monte Carlo methods:
+\begin{equation}
+\hat\Phi(t) = \frac{1}{n} \sum_{i=1}^n I(X_i \le t),
+\end{equation}
+where $X_i$'s are a random sample from $N(0, 1)$, and $I(\cdot)$ is
+the indicator function. 
+
+# Experimentation and Result
+
+Experiment with the approximation at $n \in \{10^2, 10^3, 10^4\}$ at $t \in \{0.0, 0.67, 0.84, 1.28, 1.65, 2.32, 2.58, 3.09, 3.72\}$ to form a table.
+
+
+## code and results
+
+```{r}
+t=c(0,0.67,0.84,1.28,1.65,2.32,2.58,3.09,3.72)
+n=c(100,1000,10000)
+p=matrix(0,nrow=9,ncol=3)
+for (i in 1:9) 
+  for(j in 1:3){     
+    num=rnorm(n[j],0,1)    
+    p[i,j]=mean(num<=t[i])     
+  }
+rownames(p)<-t
+colnames(p)<-n
+true_value<-c(pnorm(0),pnorm(0.67),pnorm(0.84),pnorm(1.28),pnorm(1.65),
+              pnorm(2.32),pnorm(2.58),pnorm(3.09),pnorm(3.72))
+p<-cbind(p,true_value)
+p<-round(p,digits=3)
+library(xtable)
+options(xtable.comment=FALSE)
+print(xtable(p), type="html", html.table.attributes="border=0")
+```
+Repeat the experiment 100 times
+
+```{r}
+t=c(0,0.67,0.84,1.28,1.65,2.32,2.58,3.09,3.72)
+n=c(100,1000,10000)
+p=matrix(0,nrow=9,ncol=3)
+pcycle=array(0,dim=c(9,3,100))
+for (i in 1:9)
+  for(j in 1:3)
+    for (k in 1:100){
+      num=rnorm(n[j],0,1)
+      pcycle[i,j,k]=mean(num[j]<=t[i])
+    }
+dimnames(pcycle)[[1]]<-t
+dimnames(pcycle)[[2]]<-n	
+```
+The errors
+
+```{r}
+t=c(0.0,0.67, 0.84,1.28,1.65,2.32,2.58,3.09,3.72)
+n=100
+e100_1=pcycle[1,1,]-c(rep(pnorm(0,0,1),100))
+e100_2=pcycle[2,1,]-c(rep(pnorm(0.67,0,1),100))
+e100_3=pcycle[3,1,]-c(rep(pnorm(0.84,0,1),100))
+e100_4=pcycle[4,1,]-c(rep(pnorm(1.28,0,1),100))
+e100_5=pcycle[5,1,]-c(rep(pnorm(1.65,0,1),100))
+e100_6=pcycle[6,1,]-c(rep(pnorm(2.32,0,1),100))
+e100_7=pcycle[7,1,]-c(rep(pnorm(2.58,0,1),100))
+e100_8=pcycle[8,1,]-c(rep(pnorm(3.09,0,1),100))
+e100_9=pcycle[9,1,]-c(rep(pnorm(3.72,0,1),100))
+n=1000
+e1000_1=pcycle[1,2,]-c(rep(pnorm(0,0,1),100))
+e1000_2=pcycle[2,2,]-c(rep(pnorm(0.67,0,1),100))
+e1000_3=pcycle[3,2,]-c(rep(pnorm(0.84,0,1),100))
+e1000_4=pcycle[4,2,]-c(rep(pnorm(1.28,0,1),100))
+e1000_5=pcycle[5,2,]-c(rep(pnorm(1.65,0,1),100))
+e1000_6=pcycle[6,2,]-c(rep(pnorm(2.32,0,1),100))
+e1000_7=pcycle[7,2,]-c(rep(pnorm(2.58,0,1),100))
+e1000_8=pcycle[8,2,]-c(rep(pnorm(3.09,0,1),100))
+e1000_9=pcycle[9,2,]-c(rep(pnorm(3.72,0,1),100))
+n=1000
+e10000_1=pcycle[1,3,]-c(rep(pnorm(0,0,1),100))
+e10000_2=pcycle[2,3,]-c(rep(pnorm(0.67,0,1),100))
+e10000_3=pcycle[3,3,]-c(rep(pnorm(0.84,0,1),100))
+e10000_4=pcycle[4,3,]-c(rep(pnorm(1.28,0,1),100))
+e10000_5=pcycle[5,3,]-c(rep(pnorm(1.65,0,1),100))
+e10000_6=pcycle[6,3,]-c(rep(pnorm(2.32,0,1),100))
+e10000_7=pcycle[7,3,]-c(rep(pnorm(2.58,0,1),100))
+e10000_8=pcycle[8,3,]-c(rep(pnorm(3.09,0,1),100))
+e10000_9=pcycle[9,3,]-c(rep(pnorm(3.72,0,1),100))
+E=cbind.data.frame(e100_1,e100_2,e100_3,e100_4,e100_5,e100_6,e100_7,e100_8,e100_9,e1000_1,e1000_2,e1000_3,e1000_4,e1000_5,e1000_6,e1000_7,e1000_8,e1000_9,e10000_1,e10000_2,e10000_3,e10000_4,e10000_5,e10000_6,e10000_7,e10000_8,e10000_9)
+```
+
+Graph
+
+```{r}
+library(ggplot2)
+library(lattice)
+library(plyr)
+library(Rmisc)
+
+plot1<-ggplot(data=E,aes(y=e100_1,x="0-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=0, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot1
+
+plot2<-ggplot(data=E,aes(y=e100_2,x="0.67-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=0.67, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot2
+
+plot3<-ggplot(data=E,aes(y=e100_3,x="0.84-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=0.84, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot3
+
+plot4<-ggplot(data=E,aes(y=e100_4,x="1.28-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=1.28, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot4
+
+plot5<-ggplot(data=E,aes(y=e100_5,x="1.65-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=1.65, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot5
+
+plot6<-ggplot(data=E,aes(y=e100_6,x="2.32-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=2.32, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot6
+
+plot7<-ggplot(data=E,aes(y=e100_7,x="2.58-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=2.58, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot7
+
+plot8<-ggplot(data=E,aes(y=e100_8,x="3.09-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=3.09, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot8
+
+plot9<-ggplot(data=E,aes(y=e100_9,x="3.72-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=3.72, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot9
+
+g1<-multiplot(plot1,plot2,plot3,plot4,plot5,plot6,plot7,plot8,plot9,cols=9)
+g1
+
+plot10<-ggplot(data=E,aes(y=e1000_1,x="0-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=0, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot10
+
+plot11<-ggplot(data=E,aes(y=e1000_2,x="0.67-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=0.67, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot11
+
+plot12<-ggplot(data=E,aes(y=e1000_3,x="0.84-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=0.84, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot12
+
+plot13<-ggplot(data=E,aes(y=e1000_4,x="1.28-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=1.28, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot13
+
+plot14<-ggplot(data=E,aes(y=e1000_5,x="1.65-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=1.65, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot14
+
+plot15<-ggplot(data=E,aes(y=e1000_6,x="2.32-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=2.32, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot15
+
+plot16<-ggplot(data=E,aes(y=e1000_7,x="2.58-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=2.58, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot16
+
+plot17<-ggplot(data=E,aes(y=e1000_8,x="3.09-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=3.09, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot17
+
+plot18<-ggplot(data=E,aes(y=e1000_9,x="3.72-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=3.72, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot18
+
+g2<-multiplot(plot10,plot11,plot12,plot13,plot14,plot15,plot16,plot17,plot18,cols=9)
+g2
+
+plot19<-ggplot(data=E,aes(y=e10000_1,x="0-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=0, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot19
+
+plot20<-ggplot(data=E,aes(y=e10000_2,x="0.67-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=0.67, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot20
+
+plot21<-ggplot(data=E,aes(y=e10000_3,x="0.84-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=0.84, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot21
+
+plot22<-ggplot(data=E,aes(y=e10000_4,x="1.28-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=1.28, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot22
+
+plot23<-ggplot(data=E,aes(y=e10000_5,x="1.65-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=1.65, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot23
+
+plot24<-ggplot(data=E,aes(y=e10000_6,x="2.32-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=2.32, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot24
+
+plot25<-ggplot(data=E,aes(y=e10000_7,x="2.58-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=2.58, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot25
+
+plot26<-ggplot(data=E,aes(y=e10000_8,x="3.09-100"))+geom_boxplot(
+    fill="thistle",colour="gray27")+
+    labs(title="Boxplot of error at t=3.09, n=100",y="error",
+         x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot26
+
+plot27<-ggplot(data=E,aes(y=e10000_9,x="3.72-100"))+geom_boxplot(fill="thistle",colour="gray27")+labs(title="Boxplot of error at t=3.72, n=100",y="error",x=NULL)+theme(plot.title=element_text(size=13,hjust=0.5))
+plot27
+
+g3<-multiplot(plot19,plot20,plot21,plot22,plot23,plot24,plot25,plot26,plot27,cols=9)
+g3
+```
+
+# Summary and Discussion {#sec:summary}
+
+I had many problems with this writing report.I think my code has many mistake and the result is different from others.
+
+
+
+
+
+
+
+
+
+
+
